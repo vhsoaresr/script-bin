@@ -86,11 +86,3 @@ begin
     doSOSNext(nick2); 
   end;
 end.
-//  What should be done:
-// •Check if summon has reflect buff, if not - dont attack your summon.
-//  What could be done:
-// •Adapt script for active (attacking) tank, by:
-//    • stopping  and reactivating auto attack when script is not active,
-//    • changing to worse weapon to attack the summon.
-//  Known bugs:
-// • Summon will be hit w/o stopping if it has no reflect buff.
