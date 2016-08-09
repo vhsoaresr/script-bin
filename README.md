@@ -1,2 +1,2 @@
 # Adrenaline-scripts
-Lineage Adrenaline bot script repository
+Lineage Adrenaline bot script storage place
