@@ -1,6 +1,6 @@
 # Adrenaline-scripts repository
 ###Most used function list for easy access
-Library| Class.Function  |Type        |Arguments      | Description                 | Comment
+Library| Class.Function  |Type        |Arguments      | Return value                | Comment
 -------| ---------------:|----------  |------------   |------------------------     | ---
 base   |`Engine.CBtext`  | String     | -             |Comunity board html code     | 
 base   |`Engine.DlgText` | String     | -             |NPC Dialog html code         | 
