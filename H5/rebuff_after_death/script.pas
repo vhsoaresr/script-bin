@@ -1,5 +1,5 @@
 const
-bypass_buff_sequence: array of String = ['-buffer', '-010'];
+  bypass_buff_sequence: array of String = ['-buffer', '-010'];
 var
 vPart: String;
 procedure fSelOrBypass(temp: array of String; control: TL2Control; vDelay: Integer); begin
