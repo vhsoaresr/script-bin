@@ -1,11 +1,16 @@
 uses SysUtils;
-// tbDeleted
-// needs to be tested: port_to_town; 
+// TBD:
+// unstuck delay(x) change to while `casting` do delay
+
+
+
 //  1-TI,2-Elven,3-Dwarven,4-D.Elf,5-Orc,6-Gludin,
 //  7-Gludio,8-Dion,9-Heine,10-Giran,11-Oren,
 //  12-Hunter,13-Aden,14-Rune,15-Goddard,16-Shutgart
 //  17-Floran.
 
+const
+mov_global_vDelay: Integer = 700;
 var
 mov_int1: Integer; // variable for temporary use.
 mov_int2: Integer; // variable for temporary use.
@@ -20,26 +25,30 @@ temp_arr: array of String; // variable for temporary use.
 // if array `teleport` specified talks to that town's gatekeeper with dialog secuence `teleport`.
 // uses functions:
 // at_gk(int)
-function get_to(where: String; arr: array of String): String; Overload; begin
-  mov_int1 := gk_id(get_to(where));
-  talk_to_gk(mov_int1, arr);
+function get_to(where: String; arr: array of String; vPrint: Boolean = True): String; Overload; begin
+  if vPrint then Print('get_to(where = "' + where + '", arr = <not shown>)');
+  mov_int1 := gk_id(get_to(where, vPrint));
+  talk_to_gk(mov_int1, arr, vPrint);
 end;
-function get_to(where: String = ''): String; Overload; begin
+function get_to(where: String = ''; vPrint: Boolean = True): String; Overload; begin
   // '': runs to gk
   // `town`: gets to specific town gatekeeper
-  where := string_to_town(where);
-  fRunToGk();
+  where := string_to_town(where, vPrint);
+  if vPrint then Print('get_to(where = "'+ where + '")');
+  fRunToGK(vPrint);
   if where <> '' then begin
-    port_to_town(where);
+    port_to_town(where, '', vPrint);
   end;
   Result := identify_gk;
 end;
 
 // # PRIVATE
 // helper functions
+
+// # helpers
 function string_to_town(str: String; vPrint: Boolean = True): String; begin
   // corects cammon spelling mistakes in town names.
-    if ((str = 'human') or (str = 'elf') or (str = 'dwarf') or (str = 'delf') or (str = 'orc') or (str = 'gludin') or (str = 'gludio') or (str = 'dion') or (str = 'heine') or (str = 'giran') or (str = 'oren') or (str = 'hunter') or (str = 'aden') or (str = 'rune') or (str = 'goddard') or (str = 'shutgart') or (str = 'floran'))
+    if ((str = 'island') or (str = 'elf') or (str = 'dwarf') or (str = 'delf') or (str = 'orc') or (str = 'gludin') or (str = 'gludio') or (str = 'dion') or (str = 'heine') or (str = 'giran') or (str = 'oren') or (str = 'hunter') or (str = 'aden') or (str = 'rune') or (str = 'goddard') or (str = 'shutgart') or (str = 'floran'))
     then Result := str
     else begin
       Result := '';
@@ -51,7 +60,7 @@ function gk_id(vPrint: Boolean = True): Integer; Overload; begin
 end;
 function gk_id(str: String; vPrint: Boolean = True): Integer; Overload; begin
   case str of
-    'human'   : Result := 30006;
+    'island'  : Result := 30006;
     'elf'     : Result := 30146;
     'dwarf'   : Result := 30540;
     'delf'    : Result := 30134;
@@ -70,120 +79,164 @@ function gk_id(str: String; vPrint: Boolean = True): Integer; Overload; begin
     else if vPrint then Print('WARNING: gk_id(str: String = "'+ str +'); -- parameter value not supported.');
 	end;
 end;
-function identify_gk(): String; begin
+function at_gk(where: String): Boolean; begin
+  where := string_to_town(where);
+  case where of
+      'goddard':  Result := User.InRange(147963, -55282,-2759, 250, 500);
+      'giran':    Result := User.InRange( 83344, 147932,-3431, 500, 500);
+      'rune':     Result := User.InRange( 43820, -47690, -823, 250, 500);
+      'aden':     Result := User.InRange(146709,  25759,-2039, 250, 500);
+      'oren':     Result := User.InRange( 82970,  53174,-1490, 500, 500);
+      'gludio':   Result := User.InRange(-12752, 122772,-3143, 500, 500);
+      'dion':     Result := User.InRange( 15643, 142931,-2704, 500, 500);
+      'heine':    Result := User.InRange(111412, 219382,-3540, 500, 500);
+      'island':   Result := User.InRange(-84143, 244591,-3755, 500, 500);
+      'gludin':   Result := User.InRange(-80782, 149800,-3070, 500, 500);
+      'hunter':   Result := User.InRange(117107,  76911,-2722, 500, 500);
+      'shutgart': Result := User.InRange( 87138,-143415,-1319, 250, 250);
+      'elf':      Result := User.InRange( 46924,  51485,-3003, 500, 500);
+      'dwarf':    Result := User.InRange(115093,-178177, -916, 300, 500);
+      'delf':     Result := User.InRange(  9695,  15556,-4601, 300, 500);
+      'orc':      Result := User.InRange(-45228,-112507, -265, 300, 500);
+  end;
+end;
+function move_to_gk(vPrint: Boolean = True): String; begin
+  Engine.MoveTo(147963, -55282,-2759);
+  Engine.MoveTo( 83344, 147932,-3431);
+  Engine.MoveTo( 43820, -47690, -823);
+  Engine.MoveTo(146709,  25759,-2039);
+  Engine.MoveTo( 82970,  53174,-1490);
+  Engine.MoveTo(-12752, 122772,-3143);
+  Engine.MoveTo( 15643, 142931,-2704);
+  Engine.MoveTo(111412, 219382,-3540);
+  Engine.MoveTo(-84143, 244591,-3755);
+  Engine.MoveTo(-80782, 149800,-3070);
+  Engine.MoveTo(117107,  76911,-2722);
+  Engine.MoveTo( 87138,-143415,-1319);
+  Engine.MoveTo( 46924,  51485,-3003);
+  Engine.MoveTo(115093,-178177, -916);
+  Engine.MoveTo(  9695,  15556,-4601);
+  Engine.MoveTo(-45228,-112507, -265);  
+  Result := identify_gk(vPrint);
+end;
+function identify_gk(vPrint: Boolean = True): String; begin
 	Result := '';
-  // shitty ordering for performance improvement
-	if User.InRange(147963, -55282, -2759, 250, 500) then Result := 'goddard';
-  if User.InRange(83344, 147932, -3431, 500, 500)  then Result := 'giran';
-  if User.InRange(43820, -47690, -823, 250, 500)   then Result := 'rune';
-  if User.InRange(146709, 25759, -2039, 250, 500)  then Result := 'aden';
-  if User.InRange(82970, 53174, -1490, 500, 500)   then Result := 'oren';
-  if User.InRange(-12752, 122772, -3143, 500, 500) then Result := 'gludio';
-  if User.InRange(15643, 142931, -2704, 500, 500)  then Result := 'dion';
-  if User.InRange(111412, 219382, -3540, 500, 500) then Result := 'heine';
-  if User.InRange(-84143, 244591, -3755, 500, 500) then Result := 'human';
-  if User.InRange(-80782, 149800, -3070, 500, 500) then Result := 'gludin';
-  if User.InRange(117107, 76911, -2722, 500, 500)  then Result := 'hunter';
-  if User.InRange(87138, -143415, -1319, 250, 250) then Result := 'shutgat';
-  if User.InRange(46924, 51485, -3003, 500, 500)   then Result := 'elf';
-	if User.InRange(115093, -178177, -916, 300, 500) then Result := 'dwarf';
-	if User.InRange(9695, 15556, -4601, 300, 500)    then Result := 'delf';
-	if User.InRange(-45228, -112507, -265, 300, 500) then Result := 'orc';
+  if at_gk('island')   then Result := 'island';
+  if at_gk('elf')      then Result := 'elf';
+  if at_gk('dwarf')    then Result := 'dwarf';
+  if at_gk('delf')     then Result := 'delf';
+  if at_gk('orc')      then Result := 'orc';
+  if at_gk('gludin')   then Result := 'gludin';
+  if at_gk('gludio')   then Result := 'gludio';
+  if at_gk('dion')     then Result := 'dion';
+  if at_gk('heine')    then Result := 'heine';
+  if at_gk('giran')    then Result := 'giran';
+  if at_gk('oren')     then Result := 'oren';
+  if at_gk('hunter')   then Result := 'hunter';
+  if at_gk('aden')     then Result := 'aden';
+  if at_gk('rune')     then Result := 'rune';
+  if at_gk('goddard')  then Result := 'goddard';
+  if at_gk('shutgart') then Result := 'shutgart';
+end;
+
+// # do-ers
+function wait_gk(where: String = ''; max_time: Integer = 30): Boolean; begin
+  mov_int1 := 0;
+  while not at_gk(where) and (mov_int1 < max_time) do
+  begin
+    mov_int1 := mov_int1 + 1;
+    Delay(1000);
+  end;
+end;
+function talk_to_gk(arr: array of String; vPrint: Boolean = True): String; Overload; begin
+  Result := talk_to_gk(gk_id(identify_gk), arr, vPrint);
 end;
 function talk_to_gk(town: String; arr: array of String; vPrint: Boolean = True): String; Overload; begin
-  talk_to_gk(gk_id(town), arr, 700, vPrint);
+  Result := talk_to_gk(gk_id(town), arr, vPrint);
 end;
-function talk_to_gk(vID: Integer; arr: array of String; vDelay: Integer = 700; vPrint: Boolean = True): String; Overload; begin // tbd
+function talk_to_gk(vID: Integer; arr: array of String; vPrint: Boolean = True): String; Overload; begin // tbd
   mov_int1 := 0;
-  while (User.Target.ID <> vID) and ( mov_int1 < 60 ) do
+  while (User.Target.ID <> vID) and (mov_int1 < 60) do
   begin
     Engine.SetTarget(vID);
     mov_int1 := mov_int1 + 1;
     Delay(500);
   end;
-  if(User.Target.ID = vID)then
+  if(User.Target.ID = vID) then
   begin
     if User.DistTo(User.Target) > 100 then Engine.MoveToTarget(-50);
-    Engine.DlgOpen; Delay(vDelay);
+    Engine.DlgOpen; Delay(mov_global_vDelay);
     for vPart in arr do begin
       if vPart[1] = '-' then begin
         delete(vPart,1,1);
         Engine.ByPassToServer(vPart);
-      end else Engine.DlgSel(vPart);
-      delay(vDelay);
+      end else begin
+            Print('vPart='+vPart);
+            Engine.DlgSel(vPart);
+          end;
+      delay(mov_global_vDelay);
     end;
   end;
+  Delay(1000); // --
   Result := identify_gk;
 end;
 
-function port_to_town(vTo: String): String; 
-var vFrom: String;
-begin
-  vFrom := identify_gk();
+function port_to_town(vTo: String; vFrom: String = ''; vPrint: Boolean = True): String; begin
+  print(vto);
   vTo := string_to_town(vTo);
-  if((vFrom <> vTo) and (vTo <> '')) then 
+  if vFrom = '' then vFrom := fRunToGK;
+  // if not at destination already and destination is stated corectly then do what you have to do.
+  while((vFrom <> vTo) and (vTo <> '')) do 
   begin
-    temp_arr := ['Teleport',vTo];
-    if (talk_to_gk(vFrom, temp_arr) <> '') then
-		begin
-			if(vFrom = 'human') and 
-         ((vTo = 'gludio') or (vTo = 'dion' ) or (vTo = 'heine') or (vTo = 'giran') or (vTo = 'oren' 
-        ) or (vTo = 'hunter') or (vTo = 'aden') or (vTo = 'rune') or (vTo = 'goddard') or (vTo = 'shutkart')) 
-        then vFrom := port_to_town('gludin');
-			if((vFrom = 'elf') or (vFrom = 'dwarf') or (vFrom = 'delf') or (vFrom = 'orc') or (vFrom = 'gludin')) and 
-          ((vTo = 'gludin') or (vTo = 'gludio') or (vTo = 'dion') or (vTo = 'heine') or (vTo = 'giran') or (vTo = 'oren') or (vTo = 'hunter') or (vTo = 'aden') or (vTo = 'rune') or (vTo = 'goddard') or (vTo = 'shutgart')) 
-        then vFrom := port_to_town('Gludio');
-			if(vFrom = 'elf') and (vTo = 'delf') then vFrom := port_to_town('gludio');
-        if(vFrom = 'delf') and (vTo = 'elf') then vFrom := port_to_town('gludio');
-			if(vFrom = 'gludio') and (vTo = 'human') then vFrom := port_to_town('gludin');
-			if(vFrom = 'hunter') and (vTo <> 'oren') and (vTo <> 'aden') then vFrom := port_to_town('oren');
-			if((vTo = 'hunter') and (vFrom <> 'oren') and (vFrom <> 'aden')) then vFrom := port_to_town('oren');
-			if((vFrom = 'dion') or (vFrom = 'heine') or (vFrom = 'giran') or (vFrom = 'oren') or (vFrom = 'hunter') or (vFrom = 'aden') or (vFrom = 'rune') or (vFrom = 'goddard') or (vFrom = 'shutgart'))  and (vFrom <> 'hunter') and 
-          ((vTo = 'human') or (vTo = 'elf') or (vTo = 'delf') or (vTo = 'dwarf') or (vTo = 'orc') or (vTo = 'gludin'))
-      then vFrom := port_to_town('gludio');
-		end 
-    else begin
-			if (talk_to_gk(vFrom, ['teleport', vTo]) <> '') then 
-        vFrom := vTo;
-		end;
-      vFrom := port_to_town(vTo);
-    end;
-	Result := vTo;
-	if(vFrom = '') then 
-  begin 
-    Print('Critical error durring teleport. vTo = 0');
-		Result := identify_gk;
-	end;
+    if vPrint then Print('port_to_town(vFrom = "' + vFrom + '", vTo = "' + vTo + '")');
+		if  (vFrom = 'island') and 
+        ((vTo = 'gludio') or (vTo = 'dion' ) or (vTo = 'heine') or (vTo = 'giran') or (vTo = 'oren') or 
+        (vTo = 'hunter') or (vTo = 'aden') or (vTo = 'rune') or (vTo = 'goddard') or (vTo = 'shutkart')) 
+      then port_to_town('gludin', vFrom, vPrint);
+		if  ((vFrom = 'elf') or (vFrom = 'dwarf') or (vFrom = 'delf') or (vFrom = 'orc') or (vFrom = 'gludin')) and 
+        ((vTo = 'gludin') or (vTo = 'gludio') or (vTo = 'dion') or (vTo = 'heine') or (vTo = 'giran') or (vTo = 'oren') or (vTo = 'hunter') or (vTo = 'aden') or (vTo = 'rune') or (vTo = 'goddard') or (vTo = 'shutgart')) 
+      then port_to_town('gludio', vFrom, vPrint);
+		if(vFrom = 'elf') and (vTo = 'delf') then port_to_town('gludio', vFrom, vPrint);
+    if(vFrom = 'delf') and (vTo = 'elf') then port_to_town('gludio', vFrom, vPrint);
+		if(vFrom = 'gludio') and (vTo = 'island') then port_to_town('gludin', vFrom, vPrint);
+		if(vFrom = 'hunter') and (vTo <> 'oren') and (vTo <> 'aden') then port_to_town('oren', vFrom, vPrint);
+		if((vTo = 'hunter') and (vFrom <> 'oren') and (vFrom <> 'aden')) then port_to_town('oren', vFrom, vPrint);
+		if((vFrom = 'dion') or (vFrom = 'heine') or (vFrom = 'giran') or (vFrom = 'oren') or (vFrom = 'hunter') or (vFrom = 'aden') or (vFrom = 'rune') or (vFrom = 'goddard') or (vFrom = 'shutgart'))  and (vFrom <> 'hunter') and 
+      ((vTo = 'island') or (vTo = 'elf') or (vTo = 'delf') or (vTo = 'dwarf') or (vTo = 'orc') or (vTo = 'gludin'))
+      then port_to_town('gludio', vFrom, vPrint);
+    vFrom := talk_to_gk(gk_id, ['Teleport', vTo], vPrint);
+  end;
 end;
 
-// 
 procedure mov_unstuck(vPrint: Boolean = True); begin
    // Goes to town using appropriate method.
   // tbd: if there is soe in inventory use it instead of unstuck.
   // tbd: instead of 18000 delay after unstuck, delay it while casting.
+  Print('unstuck // soe // return // etcetc..');
   if User.Dead then begin
     Engine.GoHome();
     Print('User.Dead = true, going to vilage.');
   end else
   begin
-    //control.Unstuck;
-    //control.UseKey(191);
-    //control.UseKey('u');
-    //control.UseKey('n');
-    //control.UseKey('s');
-    //control.UseKey('t');
-    //control.UseKey('u');
-    //control.UseKey('c');
-    //control.UseKey('k');
+    //Engine.Unstuck;
+    //Engine.UseKey(191);
+    //Engine.UseKey('u');
+    //Engine.UseKey('n');
+    //Engine.UseKey('s');
+    //Engine.UseKey('t');
+    //Engine.UseKey('u');
+    //Engine.UseKey('c');
+    //Engine.UseKey('k');
     //delay(10);
-    //control.UseKey(13);
+    //Engine.UseKey(13);
     Engine.UseSKill(2099);
     Delay(23000);
   end;
   Delay(3000);
 
 end;
-function fRunToGK(): String; begin
+function fRunToGK(vPrint: Boolean = True): String; begin
+if vPrint then Print('fRunToGK()');
 begin // savartynas
 //Aden:
 if User.InRange(146811,27109,-2231,500)  then
@@ -1396,12 +1449,12 @@ then Engine.MoveTo(87105, -143443, -1318);     //-> gk
 end;
 end;
 
-begin // Result
-  Result := identify_gk;
-  if(Result = '') then
-  begin
-    mov_unstuck();
-    Result := fRunToGK();
-  end;
+  begin // Result
+    Result := move_to_gk;
+    if(Result = '') then
+    begin
+      mov_unstuck();
+      Result := fRunToGK();
+    end;
   end;
 end;
